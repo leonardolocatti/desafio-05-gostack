@@ -6,6 +6,12 @@ interface Balance {
   total: number;
 }
 
+interface CreateTransactionDTO {
+  title: string;
+  value: number;
+  type: 'income' | 'outcome';
+}
+
 class TransactionsRepository {
   private transactions: Transaction[];
 
@@ -14,15 +20,45 @@ class TransactionsRepository {
   }
 
   public all(): Transaction[] {
-    // TODO
+    return this.transactions;
   }
 
   public getBalance(): Balance {
-    // TODO
+    const balance = this.transactions.reduce(
+      (balanceAcumulator: Balance, transaction: Transaction) => {
+        const newBalance = { ...balanceAcumulator };
+
+        switch (transaction.type) {
+          case 'income':
+            newBalance.income += transaction.value;
+            break;
+          case 'outcome':
+            newBalance.outcome += transaction.value;
+            break;
+          default:
+            throw Error('Incorrect transaction type was found.');
+        }
+
+        newBalance.total = newBalance.income - newBalance.outcome;
+
+        return newBalance;
+      },
+      {
+        income: 0,
+        outcome: 0,
+        total: 0,
+      },
+    );
+
+    return balance;
   }
 
-  public create(): Transaction {
-    // TODO
+  public create({ title, value, type }: CreateTransactionDTO): Transaction {
+    const transaction = new Transaction({ title, type, value });
+
+    this.transactions.push(transaction);
+
+    return transaction;
   }
 }
 
